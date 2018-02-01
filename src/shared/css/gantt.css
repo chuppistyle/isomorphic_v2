@@ -1,0 +1,48 @@
+body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+
+}
+
+h1, h2{
+    padding: 30px 0;
+    text-align: center;
+}
+ul{
+    padding: 20px 0;
+    list-style: none;
+    text-align: center;
+}
+li{
+    display: inline-block;
+    border: 1px solid black;
+    margin-left: 15px;
+    transition: all .5s linear;
+    padding: 15px 0;
+
+
+}
+li:hover{
+    background: black;
+
+}
+li:hover a{
+    color: white;
+}
+li a {
+    font-family: "Times New Roman", sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+    padding: 15px 30px;
+    margin:20px 0;
+
+}
+
+
+

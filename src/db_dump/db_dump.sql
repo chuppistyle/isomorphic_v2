@@ -1,0 +1,19 @@
+
+CREATE TABLE `test_table` (
+  `id` INT UNSIGNED NOT NULL,
+  `value` INT UNSIGNED NOT NULL,
+  `modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+ALTER TABLE `test_table`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `test_table`
+  MODIFY `id` INT UNSIGNED NOT NULL AUTO_INCREMENT;
+
+INSERT INTO `test_table` (`id`, `value`) VALUES
+  (1, 111),
+  (2, 222),
+  (3, 333),
+  (4, 444),
+  (5, 555);
