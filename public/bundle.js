@@ -51339,6 +51339,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var nodes = {};
+
+var TYPE_COLORS = {
+    0: 'black',
+    1: 'green',
+    2: 'yellow',
+    3: 'red'
+};
 var nodeHandle = function nodeHandle(DATA) {
     DATA.nodes.forEach(function (elem) {
         nodes[elem.id] = Object.assign({ children: [], parents: [], layer: -1,
@@ -51433,36 +51440,52 @@ var SetLayer = function SetLayer(node, layersList, value) {
     }
 };
 
-var RenderConnections = function RenderConnections(items) {
+var RenderConnections = function RenderConnections(items, links) {
     var result = [];
     var counter = 0;
-    Object.keys(items).forEach(function (key) {
-        var item = items[key];
-        if (item.parents.length > 0) {
-            item.parents.forEach(function (parentKey) {
-                var parentNode = items[parentKey];
-                var xA = parentNode.position.x;
-                var xB = item.position.x;
-                var yA = parentNode.position.y;
-                var yB = item.position.y;
 
-                var dx = xB - xA;
-                var dy = yB - yA;
+    links.forEach(function (link) {
 
-                var d = Math.sqrt(dx * dx + dy * dy);
-                var d2 = d - RADIUS;
-                var ratio = d2 / d;
-                dx = (xB - xA) * ratio;
-                dy = (yB - yA) * ratio;
+        var parentNode = items[link.source];
+        var item = items[link.target];
 
-                var x = xA + dx;
-                var y = yA + dy;
+        var xA = parentNode.position.x;
+        var xB = item.position.x;
+        var yA = parentNode.position.y;
+        var yB = item.position.y;
 
-                result.push(_react2.default.createElement("line", { key: counter, x1: parentNode.position.x, y1: parentNode.position.y, x2: x, y2: y,
-                    fill: "none", stroke: "black", strokeWidth: "2", markerEnd: "url(#Triangle)" }));
-                counter++;
-            });
-        }
+        var dx = xB - xA;
+        var dy = yB - yA;
+
+        var cx = xA + dx * 0.5;
+        var cy = yA + dy * 0.5;
+
+        var d = Math.sqrt(dx * dx + dy * dy);
+        var d2 = d - RADIUS;
+        var ratio = d2 / d;
+        var dx1 = (xB - xA) * ratio;
+        var dy1 = (yB - yA) * ratio;
+
+        var x = xA + dx1;
+        var y = yA + dy1;
+
+        var theta = Math.atan2(dy1, dx1) * 180 / Math.PI; // range (-PI, PI]
+
+
+        var color = link.type ? TYPE_COLORS[link.type] : TYPE_COLORS[0];
+
+        result.push(_react2.default.createElement(
+            'g',
+            { style: { fill: color } },
+            _react2.default.createElement(
+                'text',
+                { x: cx, y: cy, textAnchor: 'middle', stroke: 'black', strokeWidth: '1px', dy: '.3em' },
+                'Some text'
+            ),
+            _react2.default.createElement('line', { key: counter, x1: parentNode.position.x, y1: parentNode.position.y, x2: x, y2: y,
+                stroke: color, strokeWidth: '2', markerEnd: 'url(#Triangle)' })
+        ));
+        counter++;
     });
 
     return result;
@@ -51478,7 +51501,7 @@ var NetworkGraph = function (_Component) {
     }
 
     _createClass(NetworkGraph, [{
-        key: "componentDidMount",
+        key: 'componentDidMount',
         value: function componentDidMount() {
             var svg = d3.select(this.drawing);
             var group = d3.select(this.group);
@@ -51488,45 +51511,45 @@ var NetworkGraph = function (_Component) {
             }));
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             var _this2 = this;
 
             var items = nodeHandle(this.props.data);
             return _react2.default.createElement(
-                "svg",
+                'svg',
                 { ref: function ref(r) {
                         return _this2.drawing = r;
                     },
-                    width: "100%",
-                    height: "500",
-                    xmlns: "http://www.w3.org/2000/svg" },
+                    width: '100%',
+                    height: '500',
+                    xmlns: 'http://www.w3.org/2000/svg' },
                 _react2.default.createElement(
-                    "defs",
+                    'defs',
                     null,
                     _react2.default.createElement(
-                        "marker",
-                        { id: "Triangle", viewBox: "0 0 10 10", refX: "9", refY: "5",
-                            markerWidth: "6", markerHeight: "6", orient: "auto" },
-                        _react2.default.createElement("path", { d: "M 0 0 L 10 5 L 0 10 z" })
+                        'marker',
+                        { id: 'Triangle', viewBox: '0 0 10 10', refX: '9', refY: '5',
+                            markerWidth: '6', markerHeight: '6', orient: 'auto' },
+                        _react2.default.createElement('path', { d: 'M 0 0 L 10 5 L 0 10 z' })
                     )
                 ),
-                _react2.default.createElement("rect", { width: "100%", height: "100%", fill: "#eee" }),
+                _react2.default.createElement('rect', { width: '100%', height: '100%', fill: '#eee' }),
                 _react2.default.createElement(
-                    "g",
-                    { transform: "translate(146,121) scale(1)", ref: function ref(r) {
+                    'g',
+                    { transform: 'translate(146,121) scale(1)', ref: function ref(r) {
                             return _this2.group = r;
                         } },
-                    RenderConnections(items),
+                    RenderConnections(items, this.props.data.links),
                     Object.keys(items).map(function (key) {
                         var item = items[key];
                         return _react2.default.createElement(
-                            "g",
+                            'g',
                             { key: key },
-                            _react2.default.createElement("circle", { cx: item.position.x, cy: item.position.y, r: RADIUS, fill: "white", stroke: "black" }),
+                            _react2.default.createElement('circle', { cx: item.position.x, cy: item.position.y, r: RADIUS, fill: 'white', stroke: 'black' }),
                             _react2.default.createElement(
-                                "text",
-                                { x: item.position.x, y: item.position.y, textAnchor: "middle", stroke: "black", strokeWidth: "1px", dy: ".3em" },
+                                'text',
+                                { x: item.position.x, y: item.position.y, textAnchor: 'middle', stroke: 'black', strokeWidth: '1px', dy: '.3em' },
                                 key
                             )
                         );
@@ -51555,23 +51578,34 @@ Object.defineProperty(exports, "__esModule", {
 var GRAPH_DATA = exports.GRAPH_DATA = {
     nodes: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }, { id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }, { id: 13 }, { id: 14 }, { id: 15 }],
     links: [{
+        name: 'some text',
         source: 1,
-        target: 2
+        target: 2,
+        type: 1,
+        duration: '2 days'
+
+    }, {
+        name: 'some text 2',
+        source: 2,
+        target: 3,
+        type: 2,
+        duration: '3 days'
     }, {
         source: 2,
-        target: 3
+        target: 4,
+        type: 3
     }, {
         source: 2,
-        target: 4
-    }, {
-        source: 2,
-        target: 5
+        target: 5,
+        type: 3
     }, {
         source: 3,
-        target: 6
+        target: 6,
+        type: 2
     }, {
         source: 3,
-        target: 7
+        target: 7,
+        type: 1
     }, {
         source: 4,
         target: 7
