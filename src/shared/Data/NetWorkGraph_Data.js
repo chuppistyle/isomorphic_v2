@@ -22,28 +22,39 @@ export const GRAPH_DATA = {
     links:
         [
         {
+            name: 'Work Hard',
             source: 1,
-            target: 2
+            target: 2,
+            type: 1,
+            duration: '2 days'
+
+        },
+        {
+            name: 'Play Hard',
+            source: 2,
+            target: 3,
+            type: 2,
+            duration: '3 days'
         },
         {
             source: 2,
-            target: 3
+            target: 4,
+            type: 3,
         },
         {
             source: 2,
-            target: 4
-        },
-        {
-            source: 2,
-            target: 5
+            target: 5,
+            type: 3,
         },
         {
             source: 3,
-            target: 6
+            target: 6,
+            type: 2,
         },
         {
             source: 3,
-            target: 7
+            target: 7,
+            type: 1,
         },
         {
             source: 4,

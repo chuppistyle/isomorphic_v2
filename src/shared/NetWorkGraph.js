@@ -4,8 +4,29 @@ import * as d3 from "d3";
 
 
 
+
+//Options const
+const TYPE_COLORS = {
+    0: 'black',
+    1: 'green',
+    2: 'yellow',
+    3: 'red',
+};
+const TEXT_OFFSET = 10;
+const FONT_SIZE = '10px';
+
+const STEP = {
+    x: 150,
+    y: 100
+};
+const RADIUS = 20;
+
+
 let nodes = {
 };
+
+
+//Main function
 const nodeHandle = (DATA) => {
     DATA.nodes.forEach(elem=>{
         nodes[elem.id] = Object.assign({children:[], parents:[],layer: -1,
@@ -17,11 +38,11 @@ const nodeHandle = (DATA) => {
         nodes[elem.target].parents.push(elem.source);
     });
 
-    const layersList = {};
-
     const parentNodesBackup = Object.assign({}, nodes);
     let currentKeys;
     let previousKeysLength = -1;
+
+    const layersList = {};
     while ((currentKeys = Object.keys(parentNodesBackup)).length > 0)
     {
         if (previousKeysLength == currentKeys.length)
@@ -98,15 +119,10 @@ const nodeHandle = (DATA) => {
 };
 
 
-const STEP = {
-    x: 150,
-    y: 100
-};
-
-const RADIUS = 20;
-
+//SetLayer
 const SetLayer = (node, layersList, value) =>
 {
+
     node.layer = value;
     if (Array.isArray(layersList[value]))
     {
@@ -118,47 +134,75 @@ const SetLayer = (node, layersList, value) =>
     }
 };
 
-const RenderConnections = (items) =>
+//Render - connection nodes => line => nodes
+const RenderConnections = (items, links) =>
 {
     const result = [];
     let counter = 0;
-    Object.keys(items).forEach(key => {
-        const item = items[key];
-        if (item.parents.length > 0)
-        {
-            item.parents.forEach(parentKey => {
-                const parentNode = items[parentKey];
-                let xA = parentNode.position.x;
-                let xB = item.position.x;
-                let yA = parentNode.position.y;
-                let yB= item.position.y;
 
-                let dx = xB-xA;
-                let dy = yB-yA;
+    links.forEach(link =>{
 
-                let d = Math.sqrt(dx * dx + dy * dy);
-                let d2 = d - RADIUS;
-                let ratio = d2 / d;
-                dx = (xB - xA) * ratio;
-                dy = (yB - yA) * ratio;
+        //DATA.link.name + DATA.link.duration
+        const name = link.name;
+        const duration = link.duration;
+        const NameChecked= name ? name : ' ';
+        const DurationChecked = duration ? duration: ' ';
 
-                let x = xA + dx;
-                let y = yA + dy;
+        //Lines
+        const parentNode =  items[link.source];
+        const item = items[link.target];
+        let xA = parentNode.position.x;
+        let xB = item.position.x;
+        let yA = parentNode.position.y;
+        let yB= item.position.y;
+
+        let dx = xB-xA;
+        let dy = yB-yA;
+
+        //Middle coordinates
+        let cx = xA + dx*0.5;
+        let cy = yA + dy*0.5;
+        let cyTop = cy + TEXT_OFFSET;
+        let cyDown= cy - TEXT_OFFSET;
 
 
-                result.push(
-                    <line  key={counter} x1={parentNode.position.x} y1={parentNode.position.y} x2={x} y2={y}
-                          fill="none" stroke="black" strokeWidth="2" markerEnd="url(#Triangle)" />
-                );
-                counter++;
-            });
-        }
-    });
+        //Line
+        let d = Math.sqrt(dx * dx + dy * dy);
+        let d2 = d - RADIUS;
+        let ratio = d2 / d;
+        let dx1 = (xB - xA) * ratio;
+        let dy1 = (yB - yA) * ratio;
+        let x = xA + dx1;
+        let y = yA + dy1;
+
+        //Rotate
+        let theta = Math.atan2(dy1, dx1) * 180 / Math.PI; // range (-PI, PI]
+        let rotate = 'rotate'+'('+theta+','+cx+','+cy+')';
+
+        //Color of line
+        const color = link.type? TYPE_COLORS[link.type]: TYPE_COLORS[0];
+
+        result.push(
+            <g  key={counter} style={{fill:color}}>
+
+
+                <text x={cx} y={cyDown} textAnchor="middle" transform={rotate} stroke="black"  strokeWidth="1px" dy=".3em" fontSize={FONT_SIZE}>{NameChecked}</text>
+                <line   x1={parentNode.position.x} y1={parentNode.position.y}  x2={x} y2={y}
+                   stroke={color} strokeWidth="2" markerEnd="url(#Triangle)" />
+                <text x={cx} y={cyTop} textAnchor="middle" transform={rotate} stroke="black"   strokeWidth="1px" dy=".3em" fontSize={FONT_SIZE}>{DurationChecked}</text>
+
+            </g>
+        );
+        counter++;
+    })
 
 
 
     return result;
 };
+
+
+
 
 class NetworkGraph extends Component{
 
@@ -193,7 +237,7 @@ class NetworkGraph extends Component{
                 <rect width='100%' height="100%" fill="#eee" />
 
                 <g transform="translate(146,121) scale(1)"  ref={r => this.group = r}>
-                    {RenderConnections(items)}
+                    {RenderConnections(items, this.props.data.links)}
                     {
                         Object.keys(items).map(key => {
                             const item = items[key];
